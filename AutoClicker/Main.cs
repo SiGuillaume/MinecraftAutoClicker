@@ -11,6 +11,7 @@ namespace AutoClicker
     public partial class Main : Form
     {
         private bool _stop;
+        private const int _maxLoops = 10;
 
         public Main()
         {
@@ -121,8 +122,16 @@ namespace AutoClicker
 
         private static void FocusToggle(IntPtr hwnd)
         {
-            Thread.Sleep(200);
-            Win32Api.SetForegroundWindow(hwnd);
+            var i = 0;
+
+            while(i < _maxLoops && Win32Api.GetForegroundWindow() != hwnd)
+            {
+                Thread.Sleep(100);
+                Win32Api.SetForegroundWindow(hwnd);
+            }
+
+            if(i == _maxLoops && Win32Api.GetForegroundWindow() != hwnd)
+                MessageBox.Show(@"Error setting window focus. Please submit a report at https://github.com/smith-j-travis/MinecraftAutoClicker/issues!");
         }
 
         private delegate void SetControlPropertyThreadSafeDelegate(Control control, string propertyName, object propertyValue);
