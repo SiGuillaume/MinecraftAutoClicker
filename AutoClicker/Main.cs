@@ -128,6 +128,7 @@ namespace AutoClicker
             {
                 Thread.Sleep(100);
                 Win32Api.SetForegroundWindow(hwnd);
+                i++;
             }
 
             if(i == _maxLoops && Win32Api.GetForegroundWindow() != hwnd)
