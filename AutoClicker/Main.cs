@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -30,6 +31,13 @@ namespace AutoClicker
                 return;
             }
 
+            if (!int.TryParse(this.txtRand.Text, out int rand))
+            {
+                MessageBox.Show(@"The random must be an integer! Resetting to default.", @"Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.txtDelay.Text = @"300";
+                return;
+            }
+
             if (!mcProcesses.Any())
             {
                 MessageBox.Show(@"Minecraft not running!", @"Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -54,7 +62,7 @@ namespace AutoClicker
             foreach (var mcProcess in mcProcesses)
             {
                 var thread = new BackgroundWorker();
-                thread.DoWork += delegate { StartClick(mcProcess, mainHandle, (uint)buttonCode, delay, this.chkHold.Checked); };
+                thread.DoWork += delegate { StartClick(mcProcess, mainHandle, (uint)buttonCode, delay, rand, this.chkHold.Checked); };
                 thread.RunWorkerAsync();
 
                 Thread.Sleep(200);
@@ -63,13 +71,18 @@ namespace AutoClicker
             }
         }
 
-        private void StartClick(Process mcProcess, IntPtr mainWindowHandle, uint buttonCode, int delay, bool miningMode)
+        private void StartClick(Process mcProcess, IntPtr mainWindowHandle, uint buttonCode, int delay, int rand, bool miningMode)
         {
             SetControlPropertyThreadSafe(this.btn_start, "Enabled", false);
             SetControlPropertyThreadSafe(this.btn_stop, "Enabled", true);
 
             var handle = mcProcess.MainWindowHandle;
             FocusToggle(mcProcess.MainWindowHandle);
+
+            //Ajout d'une variable random
+            Random rand_obj = new Random();
+            int randomize = rand_obj.Next(rand, rand * 2);
+          
 
             SetControlPropertyThreadSafe(this.btn_start, "Text", @"Starting in: ");
             Thread.Sleep(500);
@@ -90,7 +103,7 @@ namespace AutoClicker
 
             while (!this._stop)
             {
-                if (millisecondsPassed == -1 || millisecondsPassed >= delay)
+                if (millisecondsPassed == -1 || millisecondsPassed >= delay + randomize)
                 {
                     millisecondsPassed = 0;
                     if (!miningMode)
@@ -133,5 +146,10 @@ namespace AutoClicker
             else
                 control.GetType().InvokeMember(propertyName, BindingFlags.SetProperty, null, control, new[] { propertyValue });
         }//end SetControlPropertyThreadSafe
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+            return;
+        }
     }
 }
